@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { Component } from 'react'
+import './App.css'
 
 let defaultStyle = {
   color: '#fff',
@@ -50,7 +50,7 @@ class PlaylistCounter extends Component {
       <div style={{...defaultStyle, width: "40%", display: "inline-block"}}>
         <h2>{this.props.playlists.length} Text</h2>
       </div>
-    );
+    )
   }
 }
 
@@ -67,7 +67,7 @@ class HoursCounter extends Component {
       <div style={{...defaultStyle, width: "40%", display: "inline-block"}}>
         <h2>{totalDuration} hours</h2>
       </div>
-    );
+    )
   }
 }
 
@@ -75,22 +75,28 @@ class Filter extends Component {
   render() {
     return(
       <div style={defaultStyle}>
-        <img/>
+        <img alt="Filterimage"/>
         <input type="text"/>
       </div>
-    );
+    )
   }
 }
 
 class Playlist extends Component {
   render() {
+    let playlist = this.props.playlist
+    let numberOfSongsInOverview = 3
     return(
       <div style={{...defaultStyle, display: "inline-block", width: "25%"}}>
-        <img/>
-        <h3>Playlist Name</h3>
-        <ul><li>Song 1</li><li>Song 2</li><li>Song 3</li></ul>
+        <img alt="Playlistimage"/>
+        <h3>{playlist.name}</h3>
+        <ul>
+          {playlist.songs.slice(0,numberOfSongsInOverview).map(song =>
+              <li>{song.name}</li>
+          )}
+        </ul>
       </div>
-    );
+    )
   }
 }
 
@@ -123,15 +129,14 @@ class App extends Component {
                                   this.state.serverData.user.playlists}
             />
             <Filter/>
-            <Playlist/>
-            <Playlist/>
-            <Playlist/>
-            <Playlist/>
+            {this.state.serverData.user.playlists.map(playlist =>
+              <Playlist playlist={playlist}/>
+            )}
           </div> : <h1 style={defaultStyle}>Loading...</h1>
         }
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default App
