@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import './App.css'
+import queryString from 'query-string'
 
 let defaultStyle = {
   color: '#fff',
@@ -110,12 +111,13 @@ class App extends Component {
   }
 
   componentDidMount() {
-    setTimeout(() => {
-        this.setState({serverData: fakeServerData})
-    }, 1000)
-    setTimeout(() => {
-        this.setState({filterString: 'll'})
-    }, 2000)
+    let parsed = queryString.parse(window.location.search)
+    let accessToken = parsed.access_token
+
+    fetch('https://api.spotify.com/v1/me',{
+      headers: {'Authorization': 'Bearer ' + accessToken}
+    }).then(response => response.json())
+    .then(data => this.setState({serverData: {user: {name: data.id}}}))
   }
 
   render() {
@@ -132,13 +134,18 @@ class App extends Component {
             <h1 style={{...defaultStyle, 'font-size': '54px'}}>
               { this.state.serverData.user.name}'s Playlists
             </h1>
-            <PlaylistCounter playlists={playlists}/>
-            <HoursCounter playlists={playlists}/>
-            <Filter onTextChange={text => this.setState({filterString: text})}/>
-            {playlists.map(playlist =>
-                  <Playlist playlist={playlist}/>
-            )}
-          </div> : <h1 style={defaultStyle}>Loading...</h1>
+            { this.state.serverData.user.playlists &&
+              <div>
+                <PlaylistCounter playlists={playlists}/>
+                <HoursCounter playlists={playlists}/>
+                <Filter onTextChange={text => this.setState({filterString: text})}/>
+                {playlists.map(playlist =>
+                      <Playlist playlist={playlist}/>
+                )}
+                </div>
+            }
+          </div> : <button onClick={() => window.location = 'http://localhost:8888/login'}
+            style={{padding: '20px', 'font-size': '50px', 'margin-top': '20px'}}>Sign in with Spotify...</button>
         }
       </div>
     )
