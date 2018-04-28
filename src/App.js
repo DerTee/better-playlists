@@ -37,9 +37,9 @@ class HoursCounter extends Component {
       (songs, eachPlaylist) => {return songs.concat(eachPlaylist.songs)},
       []
     )
-    let totalDuration = 0.01 * allSongs.reduce((duration, song) => {
+    let totalDuration = Math.round(allSongs.reduce((duration, song) => {
       return duration + song.duration
-    }, 0)
+    }, 0) / 3600 /*convert seconds to hours*/)
     return (
       <div style={{...defaultStyle, width: "40%", display: "inline-block"}}>
         <h2>{totalDuration} hours</h2>
@@ -100,12 +100,42 @@ class App extends Component {
     fetch('https://api.spotify.com/v1/me/playlists',{
       headers: {'Authorization': 'Bearer ' + accessToken}
     }).then(response => response.json())
-    .then(data => this.setState({
-      playlists: data.items.map(item => {
+    .then(playlistData => {
+      let playlists = playlistData.items
+
+      let trackDataPromises = playlists.map( playlist => {
+        let responsePromise = fetch(playlist.tracks.href,{
+          headers: {'Authorization': 'Bearer ' + accessToken}
+        })
+        let trackDataPromise = responsePromise
+          .then(response => response.json())
+        return trackDataPromise
+      })
+
+      let allTracksDataPromises =
+        Promise.all(trackDataPromises)
+
+      let playlistsPromise = allTracksDataPromises.then(trackDatas => {
+        trackDatas.forEach((trackData, i) => {
+          playlists[i].trackDatas = trackData.items.map(item =>
+            item.track
+          )
+        })
+        return playlists
+      })
+
+      return playlistsPromise
+    })
+    .then(playlists => this.setState({
+      playlists: playlists.map(playlist => {
         return {
-          name: item.name,
-          imageUrl: item.images[0].url,
-          songs: []
+          name: playlist.name,
+          imageUrl: playlist.images[0].url,
+          songs: playlist.trackDatas.map(track => ({
+              name: track.name,
+              duration: Math.round(track.duration_ms / 1000)
+            })
+          )
         }
       })
     }))
