@@ -89,6 +89,8 @@ class App extends Component {
   componentDidMount() {
     let parsed = queryString.parse(window.location.search)
     let accessToken = parsed.access_token
+    if(!accessToken)
+      return
 
     fetch('https://api.spotify.com/v1/me',{
       headers: {'Authorization': 'Bearer ' + accessToken}
@@ -100,7 +102,6 @@ class App extends Component {
     }).then(response => response.json())
     .then(data => this.setState({
       playlists: data.items.map(item => {
-        console.log(item.images)
         return {
           name: item.name,
           imageUrl: item.images[0].url,
